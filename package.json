@@ -1,0 +1,17 @@
+{
+  "name": "mousetester",
+  "version": "1.0.0",
+  "description": "A Mouse Testing Util I made for a class project together with ChatGPT",
+  "main": "app.js",
+  "scripts": {
+    "test": "node app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "child_process": "^1.0.2",
+    "express": "^4.21.2",
+    "sqlite3": "^5.1.7"
+  }
+}
