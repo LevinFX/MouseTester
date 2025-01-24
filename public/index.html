@@ -6,20 +6,105 @@
   <title>Mouse Tester</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .banner-btn.active {
+      background-color: #3B82F6;
+      color: white;
+    }
+    .test-segment {
+      display: none;
+    }
+    .test-segment.active {
+      display: block;
+    }
+  </style>
 </head>
 <body class="bg-gray-100">
   <div class="container mx-auto p-4">
-    <h1 class="text-3xl font-bold mb-6">Gaming Mouse Test Suite</h1>
-    
-    <div class="bg-white p-6 rounded-lg shadow-md mb-6">
-      <button onclick="runPollingTest()" 
-              class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-        Start Polling Rate Test
-      </button>
-      <div id="results" class="mt-4"></div>
+    <!-- Banner -->
+    <div class="bg-white rounded-lg shadow-md mb-6 p-4">
+      <div class="flex space-x-4" id="banner">
+        <button class="banner-btn px-4 py-2 rounded-lg transition-colors active" 
+                data-target="overview">
+          Übersicht
+        </button>
+        <button class="banner-btn px-4 py-2 rounded-lg transition-colors"
+                data-target="polling">
+          Polling Rate
+        </button>
+        <button class="banner-btn px-4 py-2 rounded-lg transition-colors"
+                data-target="dpi">
+          DPI
+        </button>
+        <button class="banner-btn px-4 py-2 rounded-lg transition-colors"
+                data-target="ratings">
+          Bewertungen
+        </button>
+      </div>
     </div>
 
-    <canvas id="chart" class="bg-white p-4 rounded-lg shadow-md"></canvas>
+    <!-- Segmente -->
+    <div id="segments">
+      <!-- Übersicht -->
+      <div class="test-segment active bg-white p-6 rounded-lg shadow-md" data-segment="overview">
+        <h2 class="text-2xl font-bold mb-4">Gesamtübersicht</h2>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="bg-blue-50 p-4 rounded-lg">
+            <h3 class="font-bold">Letzte Tests</h3>
+            <div id="recent-tests" class="mt-2"></div>
+          </div>
+          <div>
+            <canvas id="overview-chart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Polling Rate Test -->
+      <div class="test-segment bg-white p-6 rounded-lg shadow-md" data-segment="polling">
+        <h2 class="text-2xl font-bold mb-4">Polling Rate Test</h2>
+        <button onclick="runTest('polling')" 
+                class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+          Test starten
+        </button>
+        <div id="polling-result" class="mt-4 p-4 bg-gray-50 rounded-lg"></div>
+      </div>
+
+      <!-- DPI Test -->
+      <div class="test-segment bg-white p-6 rounded-lg shadow-md" data-segment="dpi">
+        <h2 class="text-2xl font-bold mb-4">DPI Kalibrierung</h2>
+        <div class="flex gap-4">
+          <input type="number" id="distance" 
+                 class="border p-2 w-32 rounded" 
+                 placeholder="cm bewegt">
+          <button onclick="runTest('dpi')"
+                  class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+            DPI berechnen
+          </button>
+        </div>
+        <div id="dpi-result" class="mt-4 p-4 bg-gray-50 rounded-lg"></div>
+      </div>
+
+      <!-- Bewertungen -->
+      <div class="test-segment bg-white p-6 rounded-lg shadow-md" data-segment="ratings">
+        <h2 class="text-2xl font-bold mb-4">Manuelle Bewertungen</h2>
+        <div class="space-y-4">
+          <div class="flex items-center gap-4">
+            <label class="w-32">Komfort:</label>
+            <input type="number" id="comfort" min="1" max="5" 
+                   class="border p-2 w-20 rounded">
+          </div>
+          <div class="flex items-center gap-4">
+            <label class="w-32">Bauqualität:</label>
+            <input type="number" id="build-quality" min="1" max="5" 
+                   class="border p-2 w-20 rounded">
+          </div>
+          <button onclick="saveRatings()"
+                  class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+            Speichern
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
   <script src="app.js"></script>
 </body>

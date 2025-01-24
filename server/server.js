@@ -1,31 +1,70 @@
 const express = require('express');
-const { exec } = require('child_process');
+const path = require('path');
+const db = require('./database');
+const hardware = require('./hardware');
+
 const app = express();
 const port = 3000;
 
-app.use(express.static('public'));
+// Middleware
 app.use(express.json());
+app.use(express.static(path.join(__dirname, '../public')));
 
-// Polling Rate Test Endpoint
-app.post('/api/test/polling', (req, res) => {
-  const devicePath = req.body.device;
-  
-  const evtest = exec(`evtest --grab ${devicePath}`, { timeout: 5000 });
-  let eventCount = 0;
-  let startTime = Date.now();
+// API-Endpunkte
 
-  evtest.stdout.on('data', (data) => {
-    eventCount += (data.match(/Event:/g) || []).length;
-  });
-
-  setTimeout(() => {
-    evtest.kill();
-    const duration = (Date.now() - startTime) / 1000;
-    const rate = Math.round(eventCount / duration);
-    res.json({ polling_rate: rate });
-  }, 3000);
+// Profile
+app.get('/api/profiles', async (req, res) => {
+  try {
+    const profiles = await db.getProfiles();
+    res.json(profiles);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
+app.post('/api/profiles', async (req, res) => {
+  const { name } = req.body;
+  if (!name) return res.status(400).json({ error: 'Name is required' });
+
+  try {
+    const profile = await db.createProfile(name);
+    res.json(profile);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Tests
+app.post('/api/tests', async (req, res) => {
+  const { profileId, type, distance_cm } = req.body;
+  if (!profileId || !type) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  try {
+    let result;
+    switch (type) {
+      case 'polling':
+        result = await hardware.runPollingTest();
+        break;
+      case 'dpi':
+        if (!distance_cm) {
+          return res.status(400).json({ error: 'Distance is required for DPI test' });
+        }
+        result = await hardware.runDpiTest(distance_cm);
+        break;
+      default:
+        return res.status(400).json({ error: 'Invalid test type' });
+    }
+
+    const test = await db.createTest(profileId, type, result.value);
+    res.json(test);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Server starten
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
