@@ -1,0 +1,40 @@
+<div class="rating-section bg-white p-6 rounded-lg shadow-md">
+  <h2 class="text-2xl font-bold mb-4">Manuelle Bewertungen</h2>
+  
+  <div class="grid grid-cols-2 gap-4">
+    <!-- Physikalische Tests -->
+    <div class="space-y-4">
+      <div class="form-group">
+        <label>Gewicht (g):</label>
+        <input type="number" step="1" class="input-field" id="weight">
+      </div>
+      
+      <div class="form-group">
+        <label>Lift-off Distance (mm):</label>
+        <input type="number" step="0.1" class="input-field" id="liftOff">
+      </div>
+    </div>
+
+    <!-- Qualitätsbewertungen -->
+    <div class="space-y-4">
+      <div class="form-group">
+        <label>Komfort (1.0-6.0):</label>
+        <input type="number" step="0.1" min="1" max="6" class="input-field" id="comfort">
+      </div>
+
+      <div class="form-group">
+        <label>Bauqualität (1.0-6.0):</label>
+        <input type="number" step="0.1" min="1" max="6" class="input-field" id="buildQuality">
+      </div>
+
+      <div class="form-group">
+        <label>Kabelqualität (1.0-6.0):</label>
+        <input type="number" step="0.1" min="1" max="6" class="input-field" id="cableQuality">
+      </div>
+    </div>
+  </div>
+
+  <button onclick="submitRatings()" class="btn-primary mt-4">
+    Bewertungen speichern
+  </button>
+</div>

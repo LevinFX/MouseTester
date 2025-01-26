@@ -2,7 +2,7 @@
   "name": "mousetester",
   "version": "1.0.0",
   "description": "A Mouse Testing Util I made for a class project together with ChatGPT",
-  "main": "app.js",
+  "main": "server/server.js",
   "scripts": {
     "test": "node app.js"
   },

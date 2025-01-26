@@ -1,70 +1,55 @@
 const express = require('express');
-const path = require('path');
 const db = require('./database');
 const hardware = require('./hardware');
 
 const app = express();
-const port = 3000;
-
-// Middleware
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '../public')));
 
-// API-Endpunkte
-
-// Profile
-app.get('/api/profiles', async (req, res) => {
+// Automatisierte Tests
+app.post('/api/tests/polling', async (req, res) => {
   try {
-    const profiles = await db.getProfiles();
-    res.json(profiles);
+    hardware.startPollingTest();
+    setTimeout(async () => {
+      const rate = hardware.calculatePollingRate();
+      await db.saveAutomatedTest(req.body.profileId, 'polling', rate);
+      res.json({ value: rate });
+    }, 5000);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).send(err.message);
   }
 });
 
-app.post('/api/profiles', async (req, res) => {
-  const { name } = req.body;
-  if (!name) return res.status(400).json({ error: 'Name is required' });
+app.post('/api/tests/dpi', async (req, res) => {
+  const dpi = hardware.measureDPI(req.body.distanceCM);
+  await db.saveAutomatedTest(req.body.profileId, 'dpi', dpi);
+  res.json({ value: dpi });
+});
+
+// Manuelle Bewertungen
+app.post('/api/ratings', async (req, res) => {
+  const validation = validateRatings(req.body);
+  if (!validation.valid) return res.status(400).json(validation);
 
   try {
-    const profile = await db.createProfile(name);
-    res.json(profile);
+    await db.saveManualRating(req.body);
+    res.sendStatus(201);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).send(err.message);
   }
 });
 
-// Tests
-app.post('/api/tests', async (req, res) => {
-  const { profileId, type, distance_cm } = req.body;
-  if (!profileId || !type) {
-    return res.status(400).json({ error: 'Missing required fields' });
-  }
+function validateRatings(data) {
+  const errors = [];
+  const fields = [
+    'comfort', 'build_quality', 'cable_quality',
+    'button_quality', 'material_quality', 'software_quality'
+  ];
 
-  try {
-    let result;
-    switch (type) {
-      case 'polling':
-        result = await hardware.runPollingTest();
-        break;
-      case 'dpi':
-        if (!distance_cm) {
-          return res.status(400).json({ error: 'Distance is required for DPI test' });
-        }
-        result = await hardware.runDpiTest(distance_cm);
-        break;
-      default:
-        return res.status(400).json({ error: 'Invalid test type' });
+  fields.forEach(field => {
+    if (data[field] && (data[field] < 1.0 || data[field] > 6.0)) {
+      errors.push(`${field} out of range`);
     }
+  });
 
-    const test = await db.createTest(profileId, type, result.value);
-    res.json(test);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Server starten
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
-});
+  return { valid: errors.length === 0, errors };
+}
